@@ -52,6 +52,7 @@ class _TodoListState extends State<TodoList>{
           });
         },
       ),
+      leading: todo.image == null? const Image(image: AssetImage('assets/images/no_image.jpeg')) : Image.file(todo.image!),
     );
   }
 
