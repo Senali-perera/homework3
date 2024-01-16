@@ -1,10 +1,8 @@
-import 'dart:io';
-
 class Todo {
   String title;
   bool isDone;
   String description;
-  File? image;
+  String? imagePath;
 
-  Todo(this.title, this.isDone, this.description);
+  Todo(this.title, this.isDone, this.description, {this.imagePath});
 }

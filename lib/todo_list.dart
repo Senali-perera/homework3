@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:homework3/todo.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'add_todo.dart';
 
@@ -10,15 +13,25 @@ class TodoList extends StatefulWidget {
 }
 
 class _TodoListState extends State<TodoList>{
-  final List<Todo> _todos = [];
+  List<Todo> _todos = [];
 
-  void _initialiseTodoList(){
-    if (_todos.isEmpty){
-      for (var i = 0; i <= 100; i++) {
-        Todo newToDo = Todo("Buy Groceries $i" , false, "description");
-        _todos.add(newToDo);
-      }
-    }
+  void loadTodos() async {
+    final prefs = await SharedPreferences.getInstance
+      ();
+    List<String> stringList = prefs.getStringList('todos') ?? [];
+
+    setState(() {
+      _todos = stringList.map((item) {
+        var parts = item.split(',');
+        return Todo(parts[0], parts[1] == 'true', parts[2], imagePath: parts.length > 2 ? parts[3] : null);
+      }).toList();
+    });
+  }
+
+  void saveTodos() async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> stringList = _todos.map((todo) => '${todo.title},${todo.isDone},${todo.description},${todo.imagePath ?? ''}').toList();
+    await prefs.setStringList('todos', stringList);
   }
 
   void _addTodoItem(BuildContext context) async{
@@ -31,13 +44,13 @@ class _TodoListState extends State<TodoList>{
     setState(() {
       _todos.add(result);
     });
-
+    saveTodos();
   }
 
   @override
   void initState() {
     super.initState();
-    _initialiseTodoList();
+    loadTodos();
   }
 
   Widget _viewTodoItem(Todo todo){
@@ -52,7 +65,7 @@ class _TodoListState extends State<TodoList>{
           });
         },
       ),
-      leading: todo.image == null? const Image(image: AssetImage('assets/images/no_image.jpeg')) : Image.file(todo.image!),
+      leading: todo.imagePath == null? const Image(image: AssetImage('assets/images/no_image.jpeg')) : Image.file(File(todo.imagePath!)),
     );
   }
 

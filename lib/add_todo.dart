@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:homework3/todo.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 
 class AddTodo extends StatefulWidget {
 
@@ -65,12 +67,24 @@ class _AddTodoState extends State<AddTodo> {
     );
   }
 
+  Future<String> saveImageToFileSystem(File imageFile) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final fileName = basename(imageFile.path);
+    final savedImage = await imageFile.copy('${directory.path}/$fileName');
+    return savedImage.path;
+  }
+
   Future<void> _addTodoItem(BuildContext context) async {
     String title = _textTitleFieldController.text;
     String description = _textDescriptionFieldController.text;
+    String? imagePath;
 
-    Todo todo = Todo(title, false, description);
-    todo.image = _image;
+    if(_image != null){
+      imagePath = await saveImageToFileSystem(_image!);
+    }
+
+    Todo todo = Todo(title, false, description, imagePath: imagePath);
+
     Navigator.pop(context, todo);
 
   }
