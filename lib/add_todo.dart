@@ -18,7 +18,7 @@ class _AddTodoState extends State<AddTodo> {
   File? _image;
   final imagePicker = ImagePicker();
 
-  Future getImageFromGallery() async {
+  void getImageFromGallery() async {
     final pickedFile = await imagePicker.pickImage(source: ImageSource.gallery);
 
     setState(() {
