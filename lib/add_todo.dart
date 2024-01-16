@@ -78,12 +78,13 @@ class _AddTodoState extends State<AddTodo> {
     String title = _textTitleFieldController.text;
     String description = _textDescriptionFieldController.text;
     String? imagePath;
+    String id = DateTime.now().toIso8601String();
 
     if(_image != null){
       imagePath = await saveImageToFileSystem(_image!);
     }
 
-    Todo todo = Todo(title, false, description, imagePath: imagePath);
+    Todo todo = Todo(id, title, false, description, imagePath: imagePath);
 
     Navigator.pop(context, todo);
 

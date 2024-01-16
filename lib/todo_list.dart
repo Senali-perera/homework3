@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:homework3/todo.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'add_todo.dart';
+import 'database/todo_db.dart';
 
 
 class TodoList extends StatefulWidget {
@@ -13,25 +13,17 @@ class TodoList extends StatefulWidget {
 }
 
 class _TodoListState extends State<TodoList>{
-  List<Todo> _todos = [];
+  List<Todo>? _todos = [];
+  final todoDB = TodoDB();
 
   void loadTodos() async {
-    final prefs = await SharedPreferences.getInstance
-      ();
-    List<String> stringList = prefs.getStringList('todos') ?? [];
+    // final prefs = await SharedPreferences.getInstance();
+    // List<String> stringList = prefs.getStringList('todos') ?? [];
 
+    List<Todo> todos = await todoDB.loadAllTodos();
     setState(() {
-      _todos = stringList.map((item) {
-        var parts = item.split(',');
-        return Todo(parts[0], parts[1] == 'true', parts[2], imagePath: parts.length > 2 ? parts[3] : null);
-      }).toList();
+      _todos = todos;
     });
-  }
-
-  void saveTodos() async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String> stringList = _todos.map((todo) => '${todo.title},${todo.isDone},${todo.description},${todo.imagePath ?? ''}').toList();
-    await prefs.setStringList('todos', stringList);
   }
 
   void _addTodoItem(BuildContext context) async{
@@ -41,10 +33,8 @@ class _TodoListState extends State<TodoList>{
           builder: (context) => AddTodo(),
         ));
 
-    setState(() {
-      _todos.add(result);
-    });
-    saveTodos();
+    todoDB.insertTodo(result);
+    loadTodos();
   }
 
   @override
@@ -60,9 +50,8 @@ class _TodoListState extends State<TodoList>{
       trailing: IconButton(
         icon: const Icon(Icons.delete),
         onPressed: () {
-          setState(() {
-            _todos.remove(todo);
-          });
+          todoDB.deleteTodo(todo.id);
+          loadTodos();
         },
       ),
       leading: todo.imagePath == null? const Image(image: AssetImage('assets/images/no_image.jpeg')) : Image.file(File(todo.imagePath!)),
@@ -74,9 +63,9 @@ class _TodoListState extends State<TodoList>{
     return Scaffold(
       appBar: AppBar(title: const Text('Todo List')),
       body: ListView.builder(
-        itemCount: _todos.length,
+        itemCount: _todos?.length,
         itemBuilder: (context, index) {
-          return _viewTodoItem(_todos[index]);
+          return _viewTodoItem(_todos![index]);
         },
       ),
       floatingActionButton: FloatingActionButton(
